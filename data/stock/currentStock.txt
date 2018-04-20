@@ -1,0 +1,10 @@
+3" Brown Board,5.0,41.0,3inch_brown_board.png
+5" Brown Board,8.0,39.0,3inch_brown_board.png
+3" Black Board,5.0,1.0,3inch_black_board.png
+5" Black Board,8.0,41.0,3inch_black_board.png
+1/4" Nails (lbs),4.0,562.0,nails.png
+1/2" Nails (lbs),3.0,10.0,nails.png
+200 Grit sandpaper (4 pack),5.0,10.0,sandpaper.png
+400 Grit sandpaper (4 pack),5.0,0.0,sandpaper.png
+Rags (50 pack),12.0,6.0,rags.png
+Black Rags (50 pack),12.0,7.0,black_rags.png

@@ -1,0 +1,8 @@
+stockHistoryLarge.txt
+stockHistorySmall.txt
+	- Combined hold history of all stock entries
+	- Format: date, item name, quantity, cost, totalCost, description
+	
+currentStock.txt
+	- Holds current stock of all items
+	- Format: name, current cost, current quantity, image name
