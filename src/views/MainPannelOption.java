@@ -3,6 +3,7 @@ package views;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -36,7 +37,9 @@ public class MainPannelOption extends VBox {
 		ImageView stockPic = new ImageView(new Image("file:images/stock.png"));
 		stockPic.setFitWidth(WIDTH/2 - 20);
 		stockPic.setFitHeight(WIDTH/2 - 30);
-		Button stock = new Button("Stock", stockPic);
+		Button stock = new Button("Inventory", stockPic);
+		stock.setFont(Font.font(26));
+		stock.setContentDisplay(ContentDisplay.TOP);
 		stock.setOnMouseClicked((MouseEvent event) -> {
 			basePane.setRight(workspaceViews[0]);
 			((StockView) workspaceViews[0]).reload();

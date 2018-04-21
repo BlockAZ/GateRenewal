@@ -1,6 +1,9 @@
 package controller;
 
 
+import java.io.RandomAccessFile;
+import java.nio.channels.FileChannel;
+
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Node;
@@ -27,12 +30,19 @@ public class AppStart extends Application{
 	BorderPane basePane;
 	Node[] workspaceViews;
 	
+	private static StockView inventory;
+	
 	public static void main(String args[]) {
 		launch(args);
 	}
-	
+
+
 	@Override
 	public void start(Stage primaryStage) throws Exception {
+		if (instanceRunning()) { //only allows one instance to run
+			Platform.exit();
+		}
+		
 		APP_WIDTH = Screen.getPrimary().getBounds().getWidth() * 2/3;
 		APP_HEIGHT = Screen.getPrimary().getBounds().getHeight() * 5/6;
 		MAIN_PANNEL_WIDTH = APP_WIDTH * 1/6 - 50;
@@ -54,7 +64,7 @@ public class AppStart extends Application{
 		workspaceViews = initViews();
 		
 		// working on this view
-		//basePane.setRight(workspaceViews[0]);
+		basePane.setRight(workspaceViews[0]);
 		//
 		
 		basePane.setTop(new TitleBar(basePane, primaryStage, icon, this));
@@ -83,7 +93,9 @@ public class AppStart extends Application{
 	 * Puts them in list where [0] is top, [4] is bottom
 	 */
 	private Node[] initViews() {
-		return new Node[] {new StockView(WORKSPACE_HEIGHT, WORKSPACE_WIDTH)};
+		inventory = new StockView(WORKSPACE_HEIGHT, WORKSPACE_WIDTH);
+		
+		return new Node[] {inventory};
 	}
 	
 	
@@ -95,6 +107,26 @@ public class AppStart extends Application{
 		
 		
 		Platform.exit();
+	}
+	
+	/**
+	 * only allows one instance of program to run using sockets
+	 * @return
+	 */
+	private static boolean instanceRunning() {
+		try{
+		    @SuppressWarnings("resource")
+			RandomAccessFile randomFile = 
+		        new RandomAccessFile("single.class","rw");
+
+		    FileChannel channel = randomFile.getChannel();
+
+		    if(channel.tryLock() == null) 
+		       	return true;
+		}catch( Exception e ) { 
+		    System.out.println(e.toString());
+		}
+		return false;
 	}
 
 }

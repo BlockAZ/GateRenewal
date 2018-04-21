@@ -16,7 +16,10 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
@@ -40,17 +43,23 @@ public class StockView extends BorderPane {
 	private final double HEIGHT;
 	private final double WIDTH;
 	
+	private final double TITLE_H;
 	private final double STOCK_H;
 	private final double ENTRY_H;
 	private final double HISTORY_H;
+	
+	private final int    HISTORY_LIMIT = 50;
+	private final int 	 ITEMS_LIMIT   = 5;
 	
 	// rgba(238, 204, 255, 1)
 	private String boxFormatBase = "-fx-border-color: rgba(238, 204, 255, .4);"
 				+ "-fx-border-width: 5 0 0 5;"
 				+ "-fx-border-radius: 1 1 1 1;";
 	private String boxFormatBaseV2 = "-fx-border-color: rgba(200, 203, 209, .4);";
+	private String entryAreaFormat = "-fx-border-color: rgba(200, 203, 209, .4);"
+			+ "-fx-border-width: 5 0 0 0;";
 	
-	private final int    HISTORY_LIMIT = 50;
+
 	
 	private List<Item> items;
 	private ObservableList<StockEntry> historyData;
@@ -58,17 +67,17 @@ public class StockView extends BorderPane {
 	public StockView(double height, double width) {
 		this.HEIGHT = height;
 		this.WIDTH 	= width;
-		STOCK_H 	= HEIGHT * 6/10;
-		ENTRY_H 	= HEIGHT * 2/10;
-		HISTORY_H 	= HEIGHT * 2/10;
+		TITLE_H		= HEIGHT * 1/20;
+		STOCK_H 	= HEIGHT * 11/20;
+		ENTRY_H 	= HEIGHT * 4/20;
+		HISTORY_H 	= HEIGHT * 4/20;
 		
 		
 		this.setHeight(HEIGHT);
 		this.setWidth(WIDTH);
 		
 		
-		
-		setupStockItems(false); //top
+		setupStockItems(false, 0); //top
 		setupEntry();	  
 		setupHistory();  // bottom (table view)
 	}
@@ -88,6 +97,8 @@ public class StockView extends BorderPane {
 		TableView<StockEntry> view = new TableView<StockEntry>();
 		view.setPrefHeight(HISTORY_H);
 		view.setPrefWidth(WIDTH);
+		view.setFixedCellSize(HISTORY_H/6);
+		view.setStyle("-fx-font-size: 15;");
 		
 		//column names
 		TableColumn<StockEntry, String> dateCol 	= new TableColumn<StockEntry, String>("Date");
@@ -120,10 +131,24 @@ public class StockView extends BorderPane {
 	/**
 	 * Reads in item data from text file and creates stock info boxes
 	 */
-	private void setupStockItems(boolean refresh) {
+	private void setupStockItems(boolean refresh, double vertScrollValue) {
+		// This got a little messy.. basePane is very base..
+		// title is at top
+		// scrollWrap is in middle which holds colWrap
+		
+		VBox basePane = new VBox();
+		HBox title = formatMainTitle();
 		HBox wrapper = new HBox(); // holds two columns (2 vert boxes)
-		wrapper.setPrefHeight(STOCK_H);
 		wrapper.setPrefWidth(WIDTH);
+		
+		ScrollPane scrollWrap = new ScrollPane();
+		scrollWrap.setPrefHeight(STOCK_H);
+		scrollWrap.setHbarPolicy(ScrollBarPolicy.NEVER);
+		int scrollBarWidth = 15;
+		scrollWrap.setStyle("-fx-font-size: " + scrollBarWidth + ";"
+				+ "-fx-background-color: transparent;");
+		scrollWrap.setVvalue(vertScrollValue);
+		
 		/*
 		wrapper.setStyle("-fx-border-color: green;"
 				+ "-fx-border-width: 10px;"
@@ -134,8 +159,8 @@ public class StockView extends BorderPane {
 		VBox colTwo = new VBox();
 		if (!refresh)
 			items = getItemData();
-		double boxHeight = STOCK_H/(items.size()/2);
-		double boxWidth  = WIDTH/2;
+		double boxHeight = STOCK_H/ITEMS_LIMIT;
+		double boxWidth  = (WIDTH - scrollBarWidth)/2;
 		
 		// each box broken up into 3 parts
 		// image | name | stock
@@ -169,11 +194,10 @@ public class StockView extends BorderPane {
 			stockNode.setFont(Font.font(24));
 			
 			
-		
 			box.getChildren().addAll(imgWrap, nameNode, spacer, stockNode);
 	
 			box.setOnMouseClicked((MouseEvent event) -> {
-				showStockEntry(item);
+				showStockEntry(item, scrollWrap);
 			});
 			
 			formatBorderMessV2(box, i, items.size());
@@ -185,16 +209,21 @@ public class StockView extends BorderPane {
 		}
 		
 		wrapper.getChildren().addAll(colOne, colTwo);
+		scrollWrap.setContent(wrapper);
+		basePane.getChildren().addAll(title, scrollWrap);
 		
-		this.setTop(wrapper);
+		this.setTop(basePane);
 	}
 	
+	
+
 	/**
 	 * On init of screen, sets up the bottom entry to be the happy worker
 	 * with instructions
 	 */
 	private void setupEntry() {
 		HBox content = new HBox();
+		content.setStyle(entryAreaFormat);
 		content.setPrefHeight(ENTRY_H);
 		content.setPrefWidth(WIDTH);
 		content.setAlignment(Pos.CENTER);
@@ -215,85 +244,92 @@ public class StockView extends BorderPane {
 		this.setCenter(content);
 	}
 	
+	
 	/**
 	 *  When an item is clicked on, this entry area is shown on the bottom
 	 *  When an entry is made, the item stock/price is updated as well as 
 	 *  the stock entry history
 	 */
-	private void showStockEntry(Item item) {
+	private void showStockEntry(Item item, ScrollPane scrollpane) {
 		// Holds all content
+		BorderPane wrap = new BorderPane();
+		wrap.setStyle(entryAreaFormat);
+		HBox title = formatTitle(item);
+
+		// Holds image and input stuff
 		HBox content = new HBox();
 		content.setPrefWidth(WIDTH);
 		content.setPrefHeight(ENTRY_H);
-		content.setSpacing(30);
-		content.setStyle("-fx-padding: 30px;");
-		
-		// Image on left
-		ImageView img = new ImageView(item.getImg());
-		img.setFitWidth(80);
-		img.setFitHeight(80);
-		BorderPane imgWrap = new BorderPane(img);
-		
+		content.setSpacing(50);
+		content.setStyle("-fx-padding: 0 0 0 " + WIDTH/12 + ";");  //left padding
+		content.setAlignment(Pos.CENTER_LEFT);
 	
-		// Name Node
-		VBox name = formatEntryItem(item);
+		// Product image
+		ImageView img = new ImageView(item.getImg());
+		img.setFitWidth(ENTRY_H / 2);
+		img.setFitHeight(ENTRY_H / 2);
+		BorderPane imgWrap = new BorderPane(img);
 		
 		// Amount and Cost Nodes ( need field references for submit lambda)
 		TextField amountField 	= new TextField();
 		TextField costField 	= new TextField(item.getCostString());
-		GridPane entries = formatEntryTextFields(item, amountField, costField);
+		GridPane entries = formatEntryTextFields(item, costField, amountField);
 		
-		// TextField for notes
-		GridPane notePane = new GridPane();
+		// TextField for notes and check box for correction
 		TextArea noteField = new TextArea();
-		noteField.setPrefWidth(WIDTH/4);
-		noteField.setPrefHeight(ENTRY_H);
-		notePane.add(new Label("Notes:"), 0, 0);
-		notePane.add(noteField, 0, 1);
-		
-		
-		// Submit button
+		VBox notePane = formatNotePane(noteField);
+
+		// Submit and check box area
+		CheckBox correctionBox = new CheckBox("This is a correction");
 		Button submit = new Button("Submit");
-		submit.setPrefHeight(40);
-		submit.setMinWidth(50);
-		submit.setFont(Font.font("", FontWeight.BOLD, 14));
-		BorderPane submitWrap = new BorderPane(submit);
+		VBox submitWrap = formatSubmitArea(submit, correctionBox);
+		
+		
+		content.getChildren().addAll(imgWrap, entries, notePane, submitWrap);
+		
+		wrap.setTop(title);
+		wrap.setCenter(content);
+		
+		this.setCenter(wrap);
 		
 		// Handles submit!
 		submit.setOnAction((ActionEvent click) -> {
+			int contentNodeSize = 5;
+			Label resultLabel = null;
 			// Entry validation
+			ImageView exMark = new ImageView(new Image("file:images/icons/exmark.png"));
+			exMark.setFitHeight(30);
+			exMark.setFitWidth(30);
 			if (invalidAmount(amountField.getText())) {
-				ImageView exMark = new ImageView(new Image("file:images/icons/exmark.png"));
-				exMark.setFitHeight(30);
-				exMark.setFitWidth(30);
-				submitWrap.setBottom(new Label("Invalid amount", exMark));
+				resultLabel = new Label("Invalid amount", exMark);
 			}
 			else if (invalidAmount(costField.getText())) {
-				ImageView exMark = new ImageView(new Image("file:images/icons/exmark.png"));
-				exMark.setFitHeight(30);
-				exMark.setFitWidth(30);
-				submitWrap.setBottom(new Label("Invalid cost", exMark));
+				resultLabel = new Label("Invalid cost", exMark);
 			}
 			else if (noteField.getText().contains(",")) {
-				ImageView exMark = new ImageView(new Image("file:images/icons/exmark.png"));
-				exMark.setFitHeight(30);
-				exMark.setFitWidth(30);
-				submitWrap.setBottom(new Label("Remove commas \nfrom notes", exMark));
+				resultLabel = new Label("Remove commas from notes", exMark);
 			}
-			// Valid entries
+			else if (correctionBox.isSelected() && noteField.getText().equals("")) {
+				resultLabel = new Label("Corrections require a note", exMark);
+			}
+			// Valid entries from here on out
 			else {
 				// update cost
 				double tempCost  = Double.parseDouble(costField.getText());
 				double tempQty   = Double.parseDouble(amountField.getText());
-				String tempNotes = noteField.getText();
+				String tempNotes = "";
+				if (correctionBox.isSelected())
+					tempNotes = "CORRECTION: ";
+				tempNotes += noteField.getText();
 				item.setCost(tempCost);
 				item.updateStock(tempQty);
-				setupStockItems(true);
+				setupStockItems(true, scrollpane.getVvalue());
 				
 				// reset / update field
 				amountField.setText("");
 				noteField.setText("");
 				costField.setText(item.getCostString());
+				correctionBox.setSelected(false);
 				
 				// add entry to history
 				historyData.add(0, new StockEntry(new Date(), item.getName(), tempQty, tempCost, tempNotes));
@@ -301,19 +337,22 @@ public class StockView extends BorderPane {
 				ImageView checkMark = new ImageView(new Image("file:images/icons/checkmark.png"));
 				checkMark.setFitHeight(30);
 				checkMark.setFitWidth(30);
-				submitWrap.setBottom(new Label("Success", checkMark));
+				if (content.getChildren().size() == contentNodeSize)
+					content.getChildren().remove(contentNodeSize-1);
+				resultLabel = new Label("Success", checkMark);
 			}
 			
+			if (content.getChildren().size() == contentNodeSize)
+				content.getChildren().remove(contentNodeSize-1);
+			resultLabel.setFont(Font.font(18));
+			content.getChildren().add(resultLabel);
 		});
-		
-		HBox spacer = new HBox();
-		HBox.setHgrow(spacer, Priority.ALWAYS);
-		
-		content.getChildren().addAll(entries, notePane, submitWrap, name, spacer, imgWrap);
-		
-		this.setCenter(content);
 	}
 	
+
+
+	
+
 	/**
 	 * Called on exit of program. 
 	 * 		Updates currentStock.txt with new prices/costs
@@ -437,14 +476,14 @@ public class StockView extends BorderPane {
 	 */
 	private void formatBorderMessV2(HBox box, int i, int itemSize) {
 		if (i < itemSize/2) {		// First column
-			box.setStyle(boxFormatBaseV2 + "-fx-border-width: 0 5 5 0;");
-			//if (i == itemSize/2-1) // bottom left
-			//	box.setStyle(boxFormatBaseV2 + "-fx-border-width: 0 5 5 0;");
+			box.setStyle(boxFormatBaseV2 + "-fx-border-width: 0 0 5 0;");
+			if (i == itemSize/2-1 && itemSize%2 == 0) // bottom left (checking even for formatting)
+				box.setStyle(boxFormatBaseV2 + "-fx-border-width: 0 0 0 0;");
 		}
 		else {						// Second column
-			box.setStyle(boxFormatBaseV2 + "-fx-border-width: 0 0 5 0;");
+			box.setStyle(boxFormatBaseV2 + "-fx-border-width: 0 0 5 5;");
 			if (i == itemSize-1) // bottom right
-				box.setStyle(boxFormatBaseV2 + "-fx-border-width: 0 0 5 0;");
+				box.setStyle(boxFormatBaseV2 + "-fx-border-width: 0 0 0 5;");
 		}
 	}
 	
@@ -469,31 +508,47 @@ public class StockView extends BorderPane {
 		return tempItems;
 	}
 	
-	
-	/**
-	 * In the stock entry area (middle), formats the item name section
+	/*
+	 * Formats the title at the top of the entry area. Inventory Submission: ...
 	 */
-	private VBox formatEntryItem(Item item) {
-		VBox name = new VBox();
-		name.setPrefHeight(ENTRY_H);
-		name.setAlignment(Pos.CENTER_LEFT);
-		
-		Text boldName = new Text("Item:");
-		boldName.setStyle("-fx-font-weight: bold");
-		boldName.setFont(Font.font("", FontWeight.BOLD, 20));
+	private HBox formatTitle(Item item) {
+		HBox box = new HBox();
+		box.setSpacing(30);
+		Text boldName = new Text("  Inventory Submission: ");
+		boldName.setFont(Font.font("", FontWeight.BOLD, 26));
 		
 		Text itemName = new Text(item.getName());
-		itemName.setFont(new Font(20));
+		itemName.setFont(new Font(26));
 		
-		name.getChildren().addAll(boldName, itemName);
-		return name;
+		box.getChildren().addAll(boldName, itemName);
+		return box;
+	}
+	/**
+	 * Formats the main title at very top of stock view page
+	 */
+	private HBox formatMainTitle() {
+		HBox ret = new HBox();
+		ret.setPrefHeight(TITLE_H);
+		ret.setPrefWidth(WIDTH);
+		ret.setAlignment(Pos.CENTER);
+		
+		Text title = new Text("Inventory   ");
+		title.setFont(Font.font("", FontWeight.BOLD, 36));
+		
+		Text extra = new Text(" current stock (avaliable to use)");
+		extra.setFont(new Font(28));
+		
+		ret.getChildren().addAll(title, extra);
+		
+		return ret;
 	}
 	
+
 	/**
 	 * In the stock entry area (middle), formats the text fields for entering
 	 * amount bought and the cost of the item
 	 */
-	private GridPane formatEntryTextFields(Item item, TextField amountField, TextField costField) {
+	private GridPane formatEntryTextFields(Item item, TextField costField, TextField amountField) {
 		GridPane entries = new GridPane();  //Holds labels and text Fields
 		entries.setAlignment(Pos.CENTER);
 		entries.setHgap(3.0);		
@@ -515,6 +570,41 @@ public class StockView extends BorderPane {
 		return entries;
 	}
 
+	/*
+	 *	Optional note area
+	 */
+	private VBox formatNotePane(TextArea noteField) {
+		VBox notePane = new VBox();
+		notePane.setAlignment(Pos.CENTER_LEFT);
+		Label noteslbl = new Label("Notes (optional):");
+		noteslbl.setFont(Font.font("", FontWeight.BOLD, 20));
+		
+		noteField.setPrefWidth(WIDTH/4);
+		noteField.setPrefHeight(ENTRY_H * 1/3);
+		
+		// label is for a little bit of spacing
+		notePane.getChildren().addAll(noteslbl, noteField, new Label(" ")); 
+		
+		return notePane;
+	}
+	
+	/*
+	 * Submit Area with submit button, check box, and submission result
+	 */
+	private VBox formatSubmitArea(Button submit, CheckBox correctionBox) {
+		VBox wrap = new VBox();
+		wrap.setSpacing(10);
+		wrap.setAlignment(Pos.CENTER_LEFT);
+		
+		correctionBox.setFont(Font.font(16));
+		submit.setPrefWidth(80);
+		submit.setPrefHeight(35);
+		submit.setFont(Font.font(16));
+		
+		wrap.getChildren().addAll(correctionBox, submit);
+		return wrap;
+	}
+	
 	private boolean invalidAmount(String entry) {
 		try {
 			Double.parseDouble(entry);
