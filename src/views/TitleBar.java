@@ -45,7 +45,7 @@ public class TitleBar extends ToolBar {
 		icon.setFitHeight(nodeHeight);
 		
 		// TEXT
-		Label title = new Label(" Gate Renewal LLC");
+		Label title = new Label(" Gate Renewal LLC  --  Pre Pre Pre Alpha");
 		title.setFont(new Font(16));
 		
 		// SPACE

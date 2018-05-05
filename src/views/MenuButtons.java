@@ -13,14 +13,14 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
-public class MainPannelOption extends VBox {
+public class MenuButtons extends VBox {
 	private BorderPane basePane;
 	private Node[] workspaceViews;
 	
 	private final double WIDTH;  // width and height of itself
 	private final double HEIGHT; // gotten from constructor
 	
-	public MainPannelOption(BorderPane pane, double height, double width, Node[] views) {
+	public MenuButtons(BorderPane pane, double height, double width, Node[] views) {
 		this.HEIGHT = height;
 		this.WIDTH = width;
 		this.basePane = pane;
@@ -34,22 +34,12 @@ public class MainPannelOption extends VBox {
 	 * Sets on click listeners and sets the correct size
 	 */
 	private void setup() {
-		ImageView stockPic = new ImageView(new Image("file:images/stock.png"));
-		stockPic.setFitWidth(WIDTH/2 - 20);
-		stockPic.setFitHeight(WIDTH/2 - 30);
-		Button stock = new Button("Inventory", stockPic);
-		stock.setFont(Font.font(26));
-		stock.setContentDisplay(ContentDisplay.TOP);
-		stock.setOnMouseClicked((MouseEvent event) -> {
-			basePane.setRight(workspaceViews[0]);
-			((StockView) workspaceViews[0]).reload();
-		});
-		
-		Button fill1 = new Button();
+		Button inventoryButton = getInventoryButton();
+		Button jobButton	   = getJobButton();
 		Button fill2 = new Button();
 		Button fill3 = new Button();
-		Button fill4 = new Button();
-		this.getChildren().addAll(stock, fill1, fill2, fill3, fill4);
+		Button customerButton = getCustomerButton();
+		this.getChildren().addAll(inventoryButton, jobButton, fill2, fill3, customerButton);
 		for (Node btn:this.getChildren()) {
 			Button temp = (Button)btn;
 			temp.setPrefHeight(HEIGHT/this.getChildren().size());
@@ -71,4 +61,46 @@ public class MainPannelOption extends VBox {
 				temp.setPrefWidth(WIDTH);
 		}
 	}
+	
+	
+	// FORMATTING FOR ALL BUTTONS ON THE LEFT SIDE OF BASE PANE
+	private Button getInventoryButton() {
+		//ImageView stockPic = new ImageView(new Image("file:images/stock.png"));
+		//stockPic.setFitWidth(WIDTH/2 - 20);
+		//stockPic.setFitHeight(WIDTH/2 - 30);
+		//Button stock = new Button("Inventory", stockPic);
+		Button stock = new Button("Inventory");
+		stock.setFont(Font.font(26));
+		stock.setContentDisplay(ContentDisplay.TOP);
+		stock.setOnMouseClicked((MouseEvent event) -> {
+			basePane.setRight(workspaceViews[0]);
+			((InventoryView) workspaceViews[0]).reload();
+		});
+		return stock;
+	}
+	private Button getJobButton() {
+		Button button = new Button("Jobs");
+		button.setFont(Font.font(26));
+		button.setContentDisplay(ContentDisplay.TOP);
+		button.setOnMouseClicked((MouseEvent event) -> {
+			basePane.setRight(workspaceViews[1]);
+			((JobView) workspaceViews[1]).reload();
+		});
+		return button;
+	}
+	private Button getCustomerButton() {
+		Button button = new Button("Customers");
+		button.setFont(Font.font(26));
+		button.setContentDisplay(ContentDisplay.TOP);
+		button.setOnMouseClicked((MouseEvent event) -> {
+			basePane.setRight(workspaceViews[4]);
+			((CustomerView) workspaceViews[4]).reload();
+		});
+		return button;
+	}
+	
+	
+
+	
+	
 }

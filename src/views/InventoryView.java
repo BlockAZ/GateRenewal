@@ -39,7 +39,7 @@ import javafx.scene.text.Text;
 import model.Item;
 import model.StockEntry;
 
-public class StockView extends BorderPane {
+public class InventoryView extends BorderPane {
 	private final double HEIGHT;
 	private final double WIDTH;
 	
@@ -64,7 +64,7 @@ public class StockView extends BorderPane {
 	private List<Item> items;
 	private ObservableList<StockEntry> historyData;
 	
-	public StockView(double height, double width) {
+	public InventoryView(double height, double width) {
 		this.HEIGHT = height;
 		this.WIDTH 	= width;
 		TITLE_H		= HEIGHT * 1/20;
@@ -137,14 +137,14 @@ public class StockView extends BorderPane {
 		// scrollWrap is in middle which holds colWrap
 		
 		VBox basePane = new VBox();
-		HBox title = formatMainTitle();
+		//HBox title = formatMainTitle();
 		HBox wrapper = new HBox(); // holds two columns (2 vert boxes)
 		wrapper.setPrefWidth(WIDTH);
 		
 		ScrollPane scrollWrap = new ScrollPane();
 		scrollWrap.setPrefHeight(STOCK_H);
 		scrollWrap.setHbarPolicy(ScrollBarPolicy.NEVER);
-		int scrollBarWidth = 15;
+		int scrollBarWidth = 20;
 		scrollWrap.setStyle("-fx-font-size: " + scrollBarWidth + ";"
 				+ "-fx-background-color: transparent;");
 		scrollWrap.setVvalue(vertScrollValue);
@@ -210,18 +210,17 @@ public class StockView extends BorderPane {
 		
 		wrapper.getChildren().addAll(colOne, colTwo);
 		scrollWrap.setContent(wrapper);
-		basePane.getChildren().addAll(title, scrollWrap);
+		basePane.getChildren().addAll(scrollWrap);
 		
 		this.setTop(basePane);
 	}
 	
-	
-
 	/**
 	 * On init of screen, sets up the bottom entry to be the happy worker
 	 * with instructions
 	 */
 	private void setupEntry() {
+		//wrapper for instructions in middle of screen
 		HBox content = new HBox();
 		content.setStyle(entryAreaFormat);
 		content.setPrefHeight(ENTRY_H);
@@ -243,7 +242,6 @@ public class StockView extends BorderPane {
 		
 		this.setCenter(content);
 	}
-	
 	
 	/**
 	 *  When an item is clicked on, this entry area is shown on the bottom
@@ -348,9 +346,6 @@ public class StockView extends BorderPane {
 			content.getChildren().add(resultLabel);
 		});
 	}
-	
-
-
 	
 
 	/**

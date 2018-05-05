@@ -13,8 +13,10 @@ import javafx.scene.layout.BorderPane;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
-import views.MainPannelOption;
-import views.StockView;
+import views.CustomerView;
+import views.MenuButtons;
+import views.InventoryView;
+import views.JobView;
 import views.TitleBar;
 
 public class AppStart extends Application{
@@ -30,7 +32,9 @@ public class AppStart extends Application{
 	BorderPane basePane;
 	Node[] workspaceViews;
 	
-	private static StockView inventory;
+	private static InventoryView inventory;
+	private static JobView		 jobs;
+	private static CustomerView customers;
 	
 	public static void main(String args[]) {
 		launch(args);
@@ -43,9 +47,9 @@ public class AppStart extends Application{
 			Platform.exit();
 		}
 		
-		APP_WIDTH = Screen.getPrimary().getBounds().getWidth() * 2/3;
-		APP_HEIGHT = Screen.getPrimary().getBounds().getHeight() * 5/6;
-		MAIN_PANNEL_WIDTH = APP_WIDTH * 1/6 - 50;
+		APP_WIDTH = Screen.getPrimary().getBounds().getWidth() * 3/6;
+		APP_HEIGHT = Screen.getPrimary().getBounds().getHeight() * 4/6;
+		MAIN_PANNEL_WIDTH = APP_WIDTH * 1/8;
 		WORKSPACE_HEIGHT = APP_HEIGHT - TITLE_BAR_HEIGHT;
 		WORKSPACE_WIDTH = APP_WIDTH - MAIN_PANNEL_WIDTH;
 		
@@ -64,11 +68,11 @@ public class AppStart extends Application{
 		workspaceViews = initViews();
 		
 		// working on this view
-		basePane.setRight(workspaceViews[0]);
+		basePane.setRight(workspaceViews[4]);
 		//
 		
 		basePane.setTop(new TitleBar(basePane, primaryStage, icon, this));
-		basePane.setLeft(new MainPannelOption(basePane, WORKSPACE_HEIGHT, MAIN_PANNEL_WIDTH, workspaceViews));
+		basePane.setLeft(new MenuButtons(basePane, WORKSPACE_HEIGHT, MAIN_PANNEL_WIDTH, workspaceViews));
 		
 		
 		primaryStage.setScene(new Scene(basePane, APP_WIDTH, APP_HEIGHT));
@@ -93,9 +97,11 @@ public class AppStart extends Application{
 	 * Puts them in list where [0] is top, [4] is bottom
 	 */
 	private Node[] initViews() {
-		inventory = new StockView(WORKSPACE_HEIGHT, WORKSPACE_WIDTH);
+		inventory = new InventoryView(WORKSPACE_HEIGHT, WORKSPACE_WIDTH);
+		jobs	  = new JobView(WORKSPACE_HEIGHT, WORKSPACE_WIDTH);
+		customers = new CustomerView(WORKSPACE_HEIGHT, WORKSPACE_WIDTH);
 		
-		return new Node[] {inventory};
+		return new Node[] {inventory, jobs, null, null, customers};
 	}
 	
 	
@@ -103,8 +109,8 @@ public class AppStart extends Application{
 	 * Saves relevant data from each view
 	 */
 	public void saveDataAndExit() {
-		((StockView) workspaceViews[0]).saveData();
-		
+		((InventoryView) workspaceViews[0]).saveData();
+		((CustomerView)  workspaceViews[4]).saveData();
 		
 		Platform.exit();
 	}
