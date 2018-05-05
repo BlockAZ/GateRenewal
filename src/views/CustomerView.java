@@ -12,7 +12,10 @@ import controller.LoadSaveData;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
@@ -163,9 +166,9 @@ public class CustomerView extends BorderPane{
 				resultLabel = new Label("Bad Email", exMark);
 			else if (!validStreet(street.getText()))
 				resultLabel = new Label("Bad Street", exMark);
-			else if (!validCity(city.getText()))
+			else if (!validCity(city.getText(), street.getText()))
 				resultLabel = new Label("Bad City", exMark);
-			else if (!validZip(zip.getText()))
+			else if (!validZip(zip.getText(), street.getText()))
 				resultLabel = new Label("Bad Zip", exMark);
 			else {
 				resultLabel = new Label("Success", checkMark);
@@ -184,7 +187,7 @@ public class CustomerView extends BorderPane{
 				String zipData	  = zip.getText();
 				String stateData  = state.getText();
 				if (streetData.toLowerCase().equals("na")) {
-					streetData = "";
+					streetData = "NA";
 					cityData = "";
 					zipData = "";
 					stateData = "";
@@ -232,7 +235,7 @@ public class CustomerView extends BorderPane{
 		TableColumn<Person, String> phoneCol	= new TableColumn<Person, String>("Phone No.");
 		nameCol.setPrefWidth(customerTableWidth * 2/10);
 		addressCol.setPrefWidth(customerTableWidth * 5/10); 
-		phoneCol.setPrefWidth(customerTableWidth * 3/10); // -2px removes horizontal scroll bar
+		phoneCol.setPrefWidth(customerTableWidth * 3/10 -2); // -2px removes horizontal scroll bar
 		
 		nameCol.setCellValueFactory(new PropertyValueFactory("name"));
 		addressCol.setCellValueFactory(new PropertyValueFactory("address"));
@@ -346,8 +349,6 @@ public class CustomerView extends BorderPane{
 			customerTable.refresh();
 		});
 		
-		
-		Label date 		= new Label("Added: " + person.getDate());
 		Label noteTitle = new Label("Notes: ");
 		TextArea notes		= new TextArea(person.getNotes());
 	
@@ -360,7 +361,24 @@ public class CustomerView extends BorderPane{
 		notes.setPrefHeight(HEIGHT / 6);
 		notes.setFont(Font.font(16));
 		
-		info.getChildren().addAll(name, phone, email, address, noteTitle, notes, date);
+		HBox dateDeleteWrap = new HBox();
+		dateDeleteWrap.setSpacing(35);
+		Label date 		= new Label("Added: " + person.getDate());
+		Button delete   = new Button("Delete Customer");
+		delete.setOnMouseClicked( (MouseEvent event) -> {
+			Alert alert = new Alert(AlertType.CONFIRMATION, "Delete " + person.getName() + "?",
+					ButtonType.YES, ButtonType.NO);
+			alert.showAndWait();
+			if (alert.getResult().equals(ButtonType.NO))
+				return;
+			tableData.remove(person);
+			customerTable.refresh();
+			this.setBottom(new Label()); // removes all info about person from screen
+		});
+		dateDeleteWrap.getChildren().addAll(date, delete);
+		
+		
+		info.getChildren().addAll(name, phone, email, address, noteTitle, notes, dateDeleteWrap);
 		return info;
 	}
 	private VBox getJobInfo(Person person) {
@@ -412,6 +430,8 @@ public class CustomerView extends BorderPane{
 		return true;
 	}
 	private boolean validEmail(String email) {
+		if (email.toLowerCase().equals("na"))
+			return true;
 		String emailRegex = "^[\\w!#$%&'*+/=?`{|}~^-]+(?:\\.[\\w!#$%&'*+/=?`{|}~^-]+)"
 				+ "*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,6}$";
 		Pattern pattern = Pattern.compile(emailRegex);
@@ -435,8 +455,8 @@ public class CustomerView extends BorderPane{
 		}
 		return true;
 	}
-	private boolean validCity(String city) {
-		if (city.toLowerCase().equals("na"))
+	private boolean validCity(String city, String street) {
+		if (city.toLowerCase().equals("na") || street.toLowerCase().equals("na"))
 			return true;
 		if (city.equals(""))
 			return false;
@@ -444,8 +464,8 @@ public class CustomerView extends BorderPane{
 			return false;
 		return true;
 	}
-	private boolean validZip(String zip) {
-		if (zip.toLowerCase().equals("na"))
+	private boolean validZip(String zip, String street) {
+		if (zip.toLowerCase().equals("na") || street.toLowerCase().equals("na"))
 			return true;
 		if (zip.length() < 3 || zip.length() > 5)
 			return false;
