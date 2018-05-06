@@ -37,9 +37,9 @@ public class MenuButtons extends VBox {
 		Button inventoryButton = getInventoryButton();
 		Button jobButton	   = getJobButton();
 		Button fill2 = new Button();
-		Button fill3 = new Button();
 		Button customerButton = getCustomerButton();
-		this.getChildren().addAll(inventoryButton, jobButton, fill2, fill3, customerButton);
+		Button employeeButton = getEmployeeButton();
+		this.getChildren().addAll(inventoryButton, jobButton, fill2, customerButton, employeeButton);
 		for (Node btn:this.getChildren()) {
 			Button temp = (Button)btn;
 			temp.setPrefHeight(HEIGHT/this.getChildren().size());
@@ -93,8 +93,18 @@ public class MenuButtons extends VBox {
 		button.setFont(Font.font(26));
 		button.setContentDisplay(ContentDisplay.TOP);
 		button.setOnMouseClicked((MouseEvent event) -> {
+			basePane.setRight(workspaceViews[3]);
+			((PersonView) workspaceViews[3]).reload();
+		});
+		return button;
+	}
+	private Button getEmployeeButton() {
+		Button button = new Button("Employees");
+		button.setFont(Font.font(26));
+		button.setContentDisplay(ContentDisplay.TOP);
+		button.setOnMouseClicked((MouseEvent event) -> {
 			basePane.setRight(workspaceViews[4]);
-			((CustomerView) workspaceViews[4]).reload();
+			((PersonView) workspaceViews[4]).reload();
 		});
 		return button;
 	}

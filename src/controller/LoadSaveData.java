@@ -47,4 +47,41 @@ public class LoadSaveData {
 		System.out.println("Read customers from file. Length: " + customers.size());
 		return customers;
 	}
+	
+	
+	public static void writeEmployeesToFile(ArrayList<Person> employees) {
+		try {
+			FileOutputStream outFile = new FileOutputStream("data/employeeData");
+			ObjectOutputStream outStream = new ObjectOutputStream(outFile);
+			outStream.writeObject(employees);
+			outStream.close();
+			System.out.println("Wrote employees to file. Length: "+ employees.size());
+		} catch (FileNotFoundException e) {
+			System.out.println("File not found: writing employees");
+		} catch (IOException io) {
+			io.printStackTrace();
+			System.out.println("IOException error: writing employees");
+		}
+		
+	}
+	
+	public static ArrayList<Person> readEmployeesFromFile() {
+		ArrayList<Person> employees = new ArrayList<Person>();
+		try {
+			FileInputStream inFile = new FileInputStream("data/employeeData");
+			ObjectInputStream inStream = new ObjectInputStream(inFile);
+			employees = (ArrayList<Person>) inStream.readObject();
+			inStream.close();
+		} catch (FileNotFoundException e) {
+			System.out.println("File not found: reading employees");
+			e.printStackTrace();
+		} catch (IOException e) {
+			System.out.println("IOException error: reading employees");
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			System.out.println("ClassNotFoundException error: reading employees");
+		}
+		System.out.println("Read employees from file. Length: " + employees.size());
+		return employees;
+	}
 }

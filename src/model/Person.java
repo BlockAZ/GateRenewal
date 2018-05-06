@@ -8,29 +8,27 @@ import java.util.Date;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
-public class Person implements Serializable{
-	private String name;
-	private String phoneNo;
-	private String email;
-	private String address;
-	private String notes;
-	private String date;
-	
+public abstract class Person implements Serializable{
+	protected String name;
+	protected String phoneNo;
+	protected String email;
+	protected String address;
+	protected String notes;
+	protected String date;
 
-	public Person(String name, String phoneNo, String email,String street, String city, String zip, String state, String notes) {
-		this.name 		= name;
-		this.phoneNo	= phoneNo;
-		this.email 		= email;
+	
+	public Person(String name, String phoneNo, String email ,
+				String street, String city, String zip, String state) {
+		this.name = name;
+		this.phoneNo = phoneNo;
+		this.email = email;
 		this.address 	= street + "\n" + city + ", " + state + " " + zip;
-		this.notes 		= notes;
 		DateFormat df = new SimpleDateFormat("MM/dd/yyyy hh:mm:ss a");
 		this.date 	= df.format(new Date());
 	}
 	
-	
 	public String toString() {
 		return name + "\n"
-				+ address + "\n" 
 				+ date + "\n"
 				+ notes + "\n";
 	}
@@ -45,6 +43,7 @@ public class Person implements Serializable{
 		return new SimpleStringProperty(address.substring(0, address.indexOf(",")).replace("\n", " "));
 	}
 	
+	
 
 	public String getName() {
 		return name;
@@ -53,6 +52,9 @@ public class Person implements Serializable{
 		return address;
 	}
 	
+	public void setAddress(String address) {
+		this.address = address;
+	}
 	public String getDate() {
 		return date;
 	}
@@ -70,9 +72,6 @@ public class Person implements Serializable{
 	}
 	public void setName(String name) {
 		this.name = name;
-	}
-	public void setAddress(String address) {
-		this.address = address;
 	}
 	public void setPhoneNumber(String number) {
 		this.phoneNo = number;

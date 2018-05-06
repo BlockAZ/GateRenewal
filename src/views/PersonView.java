@@ -33,35 +33,56 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import model.Customer;
+import model.Employee;
 import model.Person;
 
 
-public class CustomerView extends BorderPane{
+public class PersonView extends BorderPane{
 	private final double WIDTH;  // width and height of itself
 	private final double HEIGHT; // gotten from constructor
 
 	private final double TOP_HEIGHT;
 	private final double BOT_HEIGHT;
+	private final double TABLE_WIDTH;  
 	
-	private final double customerTableWidth;  
+	private final boolean CUSTOMER;
 	
-	private ArrayList<Person> customers;
+	private ArrayList<Person> people;
 	private ObservableList<Person> tableData;
 	private ObservableList<Person> searchData;
-	TableView<Person> customerTable;
+	TableView<Person> personTable;
 	
 	String wrapPadding = "-fx-padding: 30px;";
 	
-	public CustomerView(double height, double width) {
+	public PersonView(double height, double width, boolean isCustomer) {
+		this.CUSTOMER = isCustomer;
 		this.HEIGHT = height;
 		this.WIDTH 	= width;
-		TOP_HEIGHT  = HEIGHT * 4/10;
-		BOT_HEIGHT  = HEIGHT * 6/10;
-		customerTableWidth = WIDTH * 3/4;
+		if (CUSTOMER) {
+			TOP_HEIGHT  = HEIGHT * 4/10;
+			BOT_HEIGHT  = HEIGHT * 6/10;
+		}
+		else {
+			TOP_HEIGHT  = HEIGHT * 5/10;
+			BOT_HEIGHT  = HEIGHT * 5/10;
+		}
+		TABLE_WIDTH = WIDTH * 3/4;
+
 		
 		this.setHeight(HEIGHT);
 		this.setWidth(WIDTH);
 		
+		if (isCustomer) {
+			people = LoadSaveData.readCustomersFromFile();
+			tableData = FXCollections.observableArrayList(people);
+			searchData = FXCollections.observableArrayList();
+		}
+		else {
+			people = LoadSaveData.readEmployeesFromFile();
+			tableData = FXCollections.observableArrayList(people);
+			searchData = FXCollections.observableArrayList();
+		}
 		setup();
 	}
 	
@@ -69,13 +90,14 @@ public class CustomerView extends BorderPane{
 		
 	}
 	public void saveData() {
-		LoadSaveData.writeCustomersToFile(new ArrayList<Person>(tableData));
+		if (CUSTOMER)
+			LoadSaveData.writeCustomersToFile(new ArrayList<Person>(tableData));
+		else
+			LoadSaveData.writeEmployeesToFile(new ArrayList<Person>(tableData));
 	}
 	
 	private void setup() {
-		customers = LoadSaveData.readCustomersFromFile();
-		tableData = FXCollections.observableArrayList(customers);
-		searchData = FXCollections.observableArrayList();
+		
 		setupTop(); // tableview and buttons
 		
 	}
@@ -88,13 +110,16 @@ public class CustomerView extends BorderPane{
 		topHalf.setStyle(wrapPadding);
 		topHalf.setSpacing(15);
 		
+		
+		if (CUSTOMER)
+			personTable = getCustomerTable();
+		else 
+			personTable = getEmployeeTable();
 		VBox userFields = getNewUserFields();
-		customerTable = getCustomerTable();
 		
 		
 		
-		
-		topHalf.getChildren().addAll(userFields, customerTable);
+		topHalf.getChildren().addAll(userFields, personTable);
 		
 		this.setTop(topHalf);
 	}
@@ -110,7 +135,7 @@ public class CustomerView extends BorderPane{
 			// Getting text in search field
 			String searchStr = getFullText(event, search.getText());
 			if (searchStr.equals("")) {
-				customerTable.setItems(tableData);
+				personTable.setItems(tableData);
 				return;
 			}
 			searchData = FXCollections.observableArrayList();
@@ -118,12 +143,15 @@ public class CustomerView extends BorderPane{
 				if (peep.getName().toLowerCase().contains(searchStr))
 					searchData.add(peep);
 			}
-			customerTable.setItems(searchData);
+			personTable.setItems(searchData);
 			
 			
 		});
-		
-		Label newUserLbl = new Label("New Customer");
+		Label newUserLbl;
+		if (CUSTOMER)
+			newUserLbl = new Label("New Customer");
+		else
+			newUserLbl = new Label("New Employee");
 		newUserLbl.setFont(Font.font(26));
 		newUserLbl.setAlignment(Pos.CENTER);
 		
@@ -143,6 +171,12 @@ public class CustomerView extends BorderPane{
 		TextField zip = new TextField();
 		zip.setPromptText("Zip Code");
 		TextField state = new TextField("AZ");
+		
+		TextField wage = new TextField();
+		wage.setPromptText("Wage");
+		
+		TextField title = new TextField();
+		title.setPromptText("Title");
 
 		HBox submitWrap = new HBox();
 		submitWrap.setSpacing(10);
@@ -158,18 +192,22 @@ public class CustomerView extends BorderPane{
 			checkMark.setFitWidth(30);
 			
 			// Entry validation
-			if (name.getText().equals(""))
+			if (name.getText().equals(""))							// name
 				resultLabel = new Label("No Name", exMark);
-			else if (!validPhoneNumber(phone.getText()))
+			else if (!validPhoneNumber(phone.getText()))			// phone
 				resultLabel = new Label("Bad Phone #", exMark);
-			else if (!validEmail(email.getText()))
+			else if (!validEmail(email.getText()))					// email
 				resultLabel = new Label("Bad Email", exMark);
-			else if (!validStreet(street.getText()))
+			else if (!validStreet(street.getText()))				// street
 				resultLabel = new Label("Bad Street", exMark);
-			else if (!validCity(city.getText(), street.getText()))
+			else if (!validCity(city.getText(), street.getText()))	// city
 				resultLabel = new Label("Bad City", exMark);
-			else if (!validZip(zip.getText(), street.getText()))
+			else if (!validZip(zip.getText(), street.getText()))	// zip
 				resultLabel = new Label("Bad Zip", exMark);
+			else if (!validWage(wage.getText()))
+				resultLabel = new Label("Bad Wage", exMark);
+			else if (title.getText().equals("") && !CUSTOMER)
+				resultLabel = new Label("No Title", exMark);
 			else {
 				resultLabel = new Label("Success", checkMark);
 				String phoneMask= "(###) ###-####";
@@ -192,11 +230,29 @@ public class CustomerView extends BorderPane{
 					zipData = "";
 					stateData = "";
 				}
+				Person person;
+				if (CUSTOMER) {
+					person = new Customer(nameData, phoneData, email.getText(),
+						streetData, cityData, zipData, stateData);
+				}
+				else {
+					Double wageData		= Double.parseDouble(wage.getText());
+					String titleData	= title.getText();
+					person = new Employee(nameData, phoneData, email.getText(),
+							streetData, cityData, zipData, stateData,
+							titleData, wageData);
+				}
+				name.setText("");
+				phone.setText("");
+				email.setText("");
+				street.setText("");
+				city.setText("");
+				zip.setText("");
+				//state.setText("");
+				title.setText("");
+				wage.setText("");
 				
-				Person customer = new Person(nameData, phoneData, email.getText(),
-						streetData, cityData, zipData, stateData, "");
-				
-				tableData.add(customer);
+				tableData.add(person);
 			}
 			
 			if (submitWrap.getChildren().size() == 2)
@@ -204,18 +260,60 @@ public class CustomerView extends BorderPane{
 			submitWrap.getChildren().add(resultLabel);
 		});
 		
-
+		
 		fields.getChildren().addAll(search, newUserLbl, name, 
 				phone, email, street, city, zip, state, submitWrap);
+		
+		if (!CUSTOMER) {
+			fields.getChildren().remove(fields.getChildren().size()-1);
+			fields.getChildren().addAll(title, wage, submitWrap);
+		}
 		return fields;
 	}
 
 
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	private TableView<Person> getEmployeeTable() {
+		TableView<Person> view = new TableView<Person>();
+		view.setPrefWidth(TABLE_WIDTH);
+		view.setStyle("-fx-font-size: 15;");
+		
+		
+		// Handling row clicked to show customer info at bottom of screen
+		view.setRowFactory(tr -> {
+			TableRow<Person> row = new TableRow<>();
+			row.setOnMouseClicked( (MouseEvent e) -> {
+				if (row.isEmpty())
+					return;
+				viewCustomer(row.getItem());
+			});
+			return row;
+		});
+		
+		//TableColumn<Person, String> idCol	    = new TableColumn<Person, String>("Title"); 
+		TableColumn<Person, String> titleCol    = new TableColumn<Person, String>("Title"); 
+		TableColumn<Person, String> nameCol		= new TableColumn<Person, String>("Name");
+		TableColumn<Person, String> phoneCol	= new TableColumn<Person, String>("Phone No.");
+		//idCol.setPrefWidth(TABLE_WIDTH * 1/10);
+		titleCol.setPrefWidth(TABLE_WIDTH * 3/10);
+		nameCol.setPrefWidth(TABLE_WIDTH * 3/10);
+		phoneCol.setPrefWidth(TABLE_WIDTH * 3/10 -2); // -2px removes horizontal scroll bar
+		
+		//idCol.setCellValueFactory(new PropertyValueFactory("id"));
+		titleCol.setCellValueFactory(new PropertyValueFactory("title"));
+		nameCol.setCellValueFactory(new PropertyValueFactory("name"));
+		phoneCol.setCellValueFactory(new PropertyValueFactory("phone"));
+		
+		view.getColumns().addAll(nameCol, titleCol, phoneCol);
+		view.setItems(tableData);
+		return view;
+	}
+	
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private TableView<Person> getCustomerTable() {
 		TableView<Person> view = new TableView<Person>();
-		view.setPrefWidth(customerTableWidth);
+		view.setPrefWidth(TABLE_WIDTH);
 		view.setStyle("-fx-font-size: 15;");
 		
 		
@@ -233,9 +331,9 @@ public class CustomerView extends BorderPane{
 		TableColumn<Person, String> nameCol		= new TableColumn<Person, String>("Name");
 		TableColumn<Person, String> addressCol	= new TableColumn<Person, String>("Address");
 		TableColumn<Person, String> phoneCol	= new TableColumn<Person, String>("Phone No.");
-		nameCol.setPrefWidth(customerTableWidth * 2/10);
-		addressCol.setPrefWidth(customerTableWidth * 5/10); 
-		phoneCol.setPrefWidth(customerTableWidth * 3/10 -2); // -2px removes horizontal scroll bar
+		nameCol.setPrefWidth(TABLE_WIDTH * 2/10);
+		addressCol.setPrefWidth(TABLE_WIDTH * 5/10); 
+		phoneCol.setPrefWidth(TABLE_WIDTH * 3/10 -2); // -2px removes horizontal scroll bar
 		
 		nameCol.setCellValueFactory(new PropertyValueFactory("name"));
 		addressCol.setCellValueFactory(new PropertyValueFactory("address"));
@@ -257,15 +355,19 @@ public class CustomerView extends BorderPane{
 		bottomHalf.setPrefWidth(WIDTH);
 		bottomHalf.setAlignment(Pos.CENTER_LEFT);
 		
-		VBox customerInfo = getCustomerInfo(person);
-		VBox jobInfo 	  = getJobInfo(person);
+		VBox personInfo = getPersonInfo(person);
+		VBox rightSide;
+		if (CUSTOMER)
+			rightSide = getJobInfo(person);
+		else
+			rightSide = getExtraInfo(person);
 		
-		bottomHalf.getChildren().addAll(customerInfo, jobInfo);
+		bottomHalf.getChildren().addAll(personInfo, rightSide);
 		
 		this.setBottom(bottomHalf);
 	}
 
-	private VBox getCustomerInfo(Person person) {
+	private VBox getPersonInfo(Person person) {
 		VBox info = new VBox();
 		info.setSpacing(10);
 		info.setPrefWidth(WIDTH/2);
@@ -288,7 +390,7 @@ public class CustomerView extends BorderPane{
 			info.getChildren().remove(0);
 			name.setText(newName);
 			info.getChildren().add(0, name);
-			customerTable.refresh();
+			personTable.refresh();
 		});
 		
 		// nodes and listeners to edit phone Number
@@ -307,7 +409,7 @@ public class CustomerView extends BorderPane{
 			info.getChildren().remove(1);
 			phone.setText(newPhoneNumber);
 			info.getChildren().add(1, phone);
-			customerTable.refresh();
+			personTable.refresh();
 		});
 		
 		// nodes and listeners to edit email
@@ -326,7 +428,7 @@ public class CustomerView extends BorderPane{
 			info.getChildren().remove(2);
 			email.setText(newEmail);
 			info.getChildren().add(2, email);
-			customerTable.refresh();
+			personTable.refresh();
 		});
 		
 		// nodes and listeners to edit address
@@ -346,7 +448,7 @@ public class CustomerView extends BorderPane{
 			info.getChildren().remove(3);
 			address.setText(newAddress);
 			info.getChildren().add(3, address);
-			customerTable.refresh();
+			personTable.refresh();
 		});
 		
 		Label noteTitle = new Label("Notes: ");
@@ -364,7 +466,11 @@ public class CustomerView extends BorderPane{
 		HBox dateDeleteWrap = new HBox();
 		dateDeleteWrap.setSpacing(35);
 		Label date 		= new Label("Added: " + person.getDate());
-		Button delete   = new Button("Delete Customer");
+		Button delete;
+		if (CUSTOMER)
+			delete   = new Button("Delete Customer");
+		else
+			delete   = new Button("Delete Employee");
 		delete.setOnMouseClicked( (MouseEvent event) -> {
 			Alert alert = new Alert(AlertType.CONFIRMATION, "Delete " + person.getName() + "?",
 					ButtonType.YES, ButtonType.NO);
@@ -372,7 +478,7 @@ public class CustomerView extends BorderPane{
 			if (alert.getResult().equals(ButtonType.NO))
 				return;
 			tableData.remove(person);
-			customerTable.refresh();
+			personTable.refresh();
 			this.setBottom(new Label()); // removes all info about person from screen
 		});
 		dateDeleteWrap.getChildren().addAll(date, delete);
@@ -392,7 +498,65 @@ public class CustomerView extends BorderPane{
 		
 		return info;
 	}
-
+	private VBox getExtraInfo(Person person) {
+		Employee employee = (Employee)person;
+		VBox info = new VBox();
+		info.setSpacing(10);
+		info.setPrefWidth(WIDTH/2);
+		info.setStyle("-fx-font-size: 20;");
+		
+		
+		HBox titleWrap = new HBox();
+		Label titleLbl = new Label("Title: ");
+		// nodes and listeners to edit title
+		Label title 		= new Label(employee.getTitle());
+		TextField editTitle = new TextField("");
+		title.setOnMouseClicked( (MouseEvent event) -> {
+			titleWrap.getChildren().remove(1);
+			editTitle.setText(title.getText());
+			titleWrap.getChildren().add(1, editTitle);
+		});
+		editTitle.setOnKeyPressed( (KeyEvent event) -> {
+			if (!event.getCode().equals(KeyCode.ENTER))
+				return;
+			String newTitle = editTitle.getText();
+			employee.setTitle(newTitle);
+			titleWrap.getChildren().remove(1);
+			title.setText(newTitle);
+			titleWrap.getChildren().add(1, title);
+			personTable.refresh();
+		});
+		titleWrap.getChildren().addAll(titleLbl, title);
+		
+		
+		HBox wageWrap = new HBox();
+		Label wageLbl = new Label("Wage: $");
+		// nodes and listeners to edit title
+		Label wage 		= new Label(employee.getWageStr());
+		TextField editWage = new TextField("");
+		editWage.setMaxWidth(80);
+		wage.setOnMouseClicked( (MouseEvent event) -> {
+			wageWrap.getChildren().remove(1);
+			editWage.setText(wage.getText());
+			wageWrap.getChildren().add(1, editWage);
+		});
+		editWage.setOnKeyPressed( (KeyEvent event) -> {
+			if (!event.getCode().equals(KeyCode.ENTER))
+				return;
+			Double newWage = Double.parseDouble(editWage.getText());
+			employee.setWage(newWage);
+			wageWrap.getChildren().remove(1);
+			wage.setText(String.format("%.2f", newWage));
+			wageWrap.getChildren().add(1, wage);
+			personTable.refresh();
+		});
+		
+		wageWrap.getChildren().addAll(wageLbl, wage, new Label(" \\ h"));
+		
+		info.getChildren().addAll(titleWrap, wageWrap);
+		
+		return info;
+	}
 	
 	/* phew.. the text area isn't immediately updated with the event that keypressed
 	 * creates... but the event gives us the key that was pressed, so the text we save is
@@ -477,5 +641,15 @@ public class CustomerView extends BorderPane{
 		}
 		return true;
 	}
-	
+	private boolean validWage(String wage) {
+		if (CUSTOMER)
+			return true;
+		try {
+			Double.parseDouble(wage);
+		}
+		catch (NumberFormatException e) {
+			return false;
+		}
+		return true;
+	}
 }

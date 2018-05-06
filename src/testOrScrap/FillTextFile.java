@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Scanner;
 
 import controller.LoadSaveData;
+import model.Customer;
 import model.Item;
 import model.Person;
 import model.StockEntry;
@@ -20,11 +21,12 @@ public class FillTextFile {
 	
 	//Testing creating, storing, and loading people objects
 	public static void initPeople() {
-		Person kyle = new Person("Kyle Block", "(623)262-7817", "blockie@gmail.com", 
-				"1539 East Prince Road", "Tucson", "AZ", "85719", "he likes \ntwo \nthree lines");
-		Person chris = new Person("Chris Block", "(623)680-9294", "cjblock@gmail.com", 
-				"24834 North 36th Drive", "Phoenix", "AZ", "85310", 
-				"this dude liesk to  iajsdfkj the fthe cat and the dog went to the park and ate"
+		Person kyle = new Customer("Kyle Block", "(623)262-7817", "blockie@gmail.com", 
+				"1539 East Prince Road", "Tucson", "AZ", "85719");
+		kyle.setNotes("he likes \ntwo \nthree lines");
+		Person chris = new Customer("Chris Block", "(623)680-9294", "cjblock@gmail.com", 
+				"24834 North 36th Drive", "Phoenix", "AZ", "85310");
+		chris.setNotes("this dude liesk to  iajsdfkj the fthe cat and the dog went to the park and ate"
 				+ "chicken for likettwo and a half hours hwen the guy went to do the gate and blew "
 				+ "a tire mnan that sucked");
 		

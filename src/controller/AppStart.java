@@ -13,7 +13,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
-import views.CustomerView;
+import views.PersonView;
 import views.MenuButtons;
 import views.InventoryView;
 import views.JobView;
@@ -34,7 +34,8 @@ public class AppStart extends Application{
 	
 	private static InventoryView inventory;
 	private static JobView		 jobs;
-	private static CustomerView customers;
+	private static PersonView customers;
+	private static PersonView employees;
 	
 	public static void main(String args[]) {
 		launch(args);
@@ -99,9 +100,10 @@ public class AppStart extends Application{
 	private Node[] initViews() {
 		inventory = new InventoryView(WORKSPACE_HEIGHT, WORKSPACE_WIDTH);
 		jobs	  = new JobView(WORKSPACE_HEIGHT, WORKSPACE_WIDTH);
-		customers = new CustomerView(WORKSPACE_HEIGHT, WORKSPACE_WIDTH);
+		customers = new PersonView(WORKSPACE_HEIGHT, WORKSPACE_WIDTH, true);
+		employees = new PersonView(WORKSPACE_HEIGHT, WORKSPACE_WIDTH, false);
 		
-		return new Node[] {inventory, jobs, null, null, customers};
+		return new Node[] {inventory, jobs, null, customers, employees};
 	}
 	
 	
@@ -110,7 +112,8 @@ public class AppStart extends Application{
 	 */
 	public void saveDataAndExit() {
 		((InventoryView) workspaceViews[0]).saveData();
-		((CustomerView)  workspaceViews[4]).saveData();
+		((PersonView)  workspaceViews[3]).saveData(); // customer
+		((PersonView)  workspaceViews[4]).saveData(); // employee
 		
 		Platform.exit();
 	}
