@@ -3,6 +3,7 @@ package controller;
 
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
+import java.util.ArrayList;
 
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -13,8 +14,8 @@ import javafx.scene.layout.BorderPane;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
+import model.Person;
 import views.PersonView;
-import views.MenuButtons;
 import views.InventoryView;
 import views.JobView;
 import views.TitleBar;
@@ -69,7 +70,7 @@ public class AppStart extends Application{
 		workspaceViews = initViews();
 		
 		// working on this view
-		basePane.setRight(workspaceViews[4]);
+		basePane.setRight(workspaceViews[0]);
 		//
 		
 		basePane.setTop(new TitleBar(basePane, primaryStage, icon, this));
@@ -98,10 +99,14 @@ public class AppStart extends Application{
 	 * Puts them in list where [0] is top, [4] is bottom
 	 */
 	private Node[] initViews() {
+		ArrayList<Person> customerData = LoadSaveData.readCustomersFromFile();
+		ArrayList<Person> employeeData = LoadSaveData.readEmployeesFromFile();
+		
+		
 		inventory = new InventoryView(WORKSPACE_HEIGHT, WORKSPACE_WIDTH);
-		jobs	  = new JobView(WORKSPACE_HEIGHT, WORKSPACE_WIDTH);
-		customers = new PersonView(WORKSPACE_HEIGHT, WORKSPACE_WIDTH, true);
-		employees = new PersonView(WORKSPACE_HEIGHT, WORKSPACE_WIDTH, false);
+		jobs	  = new JobView(WORKSPACE_HEIGHT, WORKSPACE_WIDTH, customerData);
+		customers = new PersonView(WORKSPACE_HEIGHT, WORKSPACE_WIDTH, true, customerData);
+		employees = new PersonView(WORKSPACE_HEIGHT, WORKSPACE_WIDTH, false, employeeData);
 		
 		return new Node[] {inventory, jobs, null, customers, employees};
 	}

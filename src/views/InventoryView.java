@@ -11,9 +11,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Scanner;
 
+import com.sun.javafx.event.EventHandlerManager;
+
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -37,6 +40,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import model.Item;
+import model.ItemGroup;
 import model.StockEntry;
 
 public class InventoryView extends BorderPane {
@@ -52,17 +56,18 @@ public class InventoryView extends BorderPane {
 	private final int 	 ITEMS_LIMIT   = 5;
 	
 	// rgba(238, 204, 255, 1)
-	private String boxFormatBase = "-fx-border-color: rgba(238, 204, 255, .4);"
-				+ "-fx-border-width: 5 0 0 5;"
-				+ "-fx-border-radius: 1 1 1 1;";
-	private String boxFormatBaseV2 = "-fx-border-color: rgba(200, 203, 209, .4);";
-	private String entryAreaFormat = "-fx-border-color: rgba(200, 203, 209, .4);"
-			+ "-fx-border-width: 5 0 0 0;";
+	private String formatBorderColor = "-fx-border-color: rgba(200, 203, 209, .4);";
+	private String boxFormatBaseV2 = formatBorderColor;
+	private String itemGroupFormat = formatBorderColor + "-fx-border-width: 0 0 5 0;";
+	private String entryAreaFormat = formatBorderColor + "-fx-border-width: 5 0 0 0;";
 	
 
 	
 	private List<Item> items;
+	private List<Item> allItems;
 	private ObservableList<StockEntry> historyData;
+	private ItemGroup itemGroup = ItemGroup.ALL;  // tells us which items are being displayed
+							// all | boards | welding | other
 	
 	public InventoryView(double height, double width) {
 		this.HEIGHT = height;
@@ -129,20 +134,27 @@ public class InventoryView extends BorderPane {
 	}
 	
 	/**
-	 * Reads in item data from text file and creates stock info boxes
+	 * Reads in item data from text file and creates inventory info boxes
 	 */
 	private void setupStockItems(boolean refresh, double vertScrollValue) {
 		// This got a little messy.. basePane is very base..
-		// title is at top
+		// groupButtons is buttons that filter list by item group
 		// scrollWrap is in middle which holds colWrap
 		
 		VBox basePane = new VBox();
-		//HBox title = formatMainTitle();
+		
+		// START GROUP BUTTONS
+		double groupButtonsHeight = STOCK_H * 1/6;
+		HBox groupButtons = formatItemGroupButtons(groupButtonsHeight);
+		groupButtons.setPrefHeight(groupButtonsHeight);
+		
+		basePane.getChildren().addAll(groupButtons);
+		
+		// START ITEM LIST 
 		HBox wrapper = new HBox(); // holds two columns (2 vert boxes)
 		wrapper.setPrefWidth(WIDTH);
-		
 		ScrollPane scrollWrap = new ScrollPane();
-		scrollWrap.setPrefHeight(STOCK_H);
+		scrollWrap.setPrefHeight(STOCK_H  - groupButtonsHeight);
 		scrollWrap.setHbarPolicy(ScrollBarPolicy.NEVER);
 		int scrollBarWidth = 20;
 		scrollWrap.setStyle("-fx-font-size: " + scrollBarWidth + ";"
@@ -155,12 +167,26 @@ public class InventoryView extends BorderPane {
 				+ "-fx-padding: 30px;");
 		*/
 	
-		VBox colOne = new VBox();
-		VBox colTwo = new VBox();
-		if (!refresh)
-			items = getItemData();
+		VBox itemBoxes = new VBox();
+		if (!refresh) {
+			allItems = getItemData(); //wont change when
+			System.out.println(allItems.size());
+			items = new ArrayList<Item>();
+		}
+		// only display items that are of the current item group filter
+		items.clear();
+		if (itemGroup.equals(ItemGroup.ALL))
+			items = new ArrayList<Item>(allItems);
+		else {
+			for (Item item:allItems) {
+				if (item.getGroup().equals(itemGroup))
+					items.add(item);
+			}
+		}
+		
+			
 		double boxHeight = STOCK_H/ITEMS_LIMIT;
-		double boxWidth  = (WIDTH - scrollBarWidth)/2;
+		double boxWidth  = WIDTH - scrollBarWidth;
 		
 		// each box broken up into 3 parts
 		// image | name | stock
@@ -175,8 +201,8 @@ public class InventoryView extends BorderPane {
 			box.setPrefWidth(boxWidth);
 			
 			ImageView imgNode = new ImageView(item.getImg());
-			imgNode.setFitWidth(imageWidth/2);
-			imgNode.setFitHeight(imageWidth/2);
+			imgNode.setFitWidth(imageWidth/3);
+			imgNode.setFitHeight(imageWidth/3);
 			BorderPane imgWrap = new BorderPane(imgNode);
 			imgWrap.setPrefHeight(boxHeight);
 			imgWrap.setPrefWidth(imageWidth);
@@ -200,19 +226,17 @@ public class InventoryView extends BorderPane {
 				showStockEntry(item, scrollWrap);
 			});
 			
-			formatBorderMessV2(box, i, items.size());
+			box.setStyle(boxFormatBaseV2 + "-fx-border-width: 5 0 0 0;");
+			if (i == 0)  // override first box so there's not 2 lines at top
+				box.setStyle(boxFormatBaseV2 + "-fx-border-width: 0 0 0 0;");
 			
-			if (i < items.size()/2)
-				colOne.getChildren().add(box);
-			else
-				colTwo.getChildren().add(box);
+			itemBoxes.getChildren().add(box);
 		}
+		wrapper.getChildren().addAll(itemBoxes); // boxes into v box
+		scrollWrap.setContent(wrapper);			 // v box into scroll bar thing
+		basePane.getChildren().addAll(scrollWrap); // scroll bar thing into base pane
 		
-		wrapper.getChildren().addAll(colOne, colTwo);
-		scrollWrap.setContent(wrapper);
-		basePane.getChildren().addAll(scrollWrap);
-		
-		this.setTop(basePane);
+		this.setTop(basePane); // add to overall page
 	}
 	
 	/**
@@ -320,7 +344,7 @@ public class InventoryView extends BorderPane {
 					tempNotes = "CORRECTION: ";
 				tempNotes += noteField.getText();
 				item.setCost(tempCost);
-				item.updateStock(tempQty);
+				item.updateCount(tempQty);
 				setupStockItems(true, scrollpane.getVvalue());
 				
 				// reset / update field
@@ -357,8 +381,8 @@ public class InventoryView extends BorderPane {
 		FileWriter out = null;
 		try {
 			out = new FileWriter(new File("data/stock/currentStock.txt"), false);
-			for (int i=0; i<items.size(); i++)
-				out.write(items.get(i).toString());
+			for (int i=0; i<allItems.size(); i++)
+				out.write(allItems.get(i).toString());
 			out.flush();
 			out.close();
 		} catch (IOException e) {
@@ -378,7 +402,7 @@ public class InventoryView extends BorderPane {
 	}
 	
 	
-	//HELPER METHODS BELOW
+	////////////////////////////////////////////////////////////////////////////////////////////////// HELPER METHODS BELOW
 	
 	/**
 	 * Accesses the txt file where last 50 adds/removes are stored
@@ -428,60 +452,6 @@ public class InventoryView extends BorderPane {
 		return data;
 	}
 	
-	/*
-	 * This is a mess because each corner box needs its own border radius
-	 * values, the two bottom boxes need bottom borders, and the right column
-	 * needs right borders... IF ONLY JAVAFX SUPPORTED BORDER-COLLAPSE
-	 */
-	@SuppressWarnings("unused")
-	private void formatBorderMess(HBox box, int i, int itemSize) {
-		// Formatting border radius
-			if (i == 0) { 						//top left
-				box.setStyle(boxFormatBase
-						+ "-fx-border-radius: 5 1 1 1;");
-			}
-			else if (i == itemSize/2 - 1) { // bottom left
-				box.setStyle(boxFormatBase
-						+ "-fx-border-radius: 1 1 1 5;"
-						+ "-fx-border-width: 5 0 5 5;");
-			}
-			else if (i >= itemSize/2) {		// 2nd column	
-				if (i == itemSize/2) {		// top right
-					box.setStyle(boxFormatBase
-							+ "-fx-border-radius: 1 5 1 1;"
-							+ "-fx-border-width: 5 5 0 5;");
-				}
-				else if (i == itemSize-1) {		// bottom right
-					box.setStyle(boxFormatBase
-							+ "-fx-border-radius: 1 1 5 1;"
-							+ "-fx-border-width: 5 5 5 5;");
-				}
-				else {
-					box.setStyle(boxFormatBase
-							+ "-fx-border-width: 5 5 0 5;");
-				}
-			}
-			else {
-				box.setStyle(boxFormatBase);
-			}
-	}
-	
-	/**
-	 * Setting up borders without top or sides
-	 */
-	private void formatBorderMessV2(HBox box, int i, int itemSize) {
-		if (i < itemSize/2) {		// First column
-			box.setStyle(boxFormatBaseV2 + "-fx-border-width: 0 0 5 0;");
-			if (i == itemSize/2-1 && itemSize%2 == 0) // bottom left (checking even for formatting)
-				box.setStyle(boxFormatBaseV2 + "-fx-border-width: 0 0 0 0;");
-		}
-		else {						// Second column
-			box.setStyle(boxFormatBaseV2 + "-fx-border-width: 0 0 5 5;");
-			if (i == itemSize-1) // bottom right
-				box.setStyle(boxFormatBaseV2 + "-fx-border-width: 0 0 0 5;");
-		}
-	}
-	
 	/**
 	 * Parses info about items from stock file held in data folder
 	 * data/stock/currentStock.txt
@@ -499,7 +469,6 @@ public class InventoryView extends BorderPane {
 		// Reading in all data from stockFile, creating Item for each
 		while (in.hasNextLine())
 			tempItems.add(new Item(in.nextLine(), true));
-		
 		return tempItems;
 	}
 	
@@ -521,23 +490,42 @@ public class InventoryView extends BorderPane {
 	/**
 	 * Formats the main title at very top of stock view page
 	 */
-	private HBox formatMainTitle() {
+	private HBox formatItemGroupButtons(double wrapperHeight) {
 		HBox ret = new HBox();
-		ret.setPrefHeight(TITLE_H);
-		ret.setPrefWidth(WIDTH);
 		ret.setAlignment(Pos.CENTER);
+		ret.setSpacing(20);
+		ret.setStyle(itemGroupFormat);
+		Button group1 = new Button("Boards");
+		Button group2 = new Button("Welding");
+		Button group3 = new Button("Other");
+		Button group4 = new Button("All");
+		group1.setOnAction(new ItemGroupHandler(ItemGroup.BOARD));
+		group2.setOnAction(new ItemGroupHandler(ItemGroup.WELDING));
+		group3.setOnAction(new ItemGroupHandler(ItemGroup.OTHER));
+		group4.setOnAction(new ItemGroupHandler(ItemGroup.ALL));
 		
-		Text title = new Text("Inventory   ");
-		title.setFont(Font.font("", FontWeight.BOLD, 36));
+		for (Button group:new Button[] {group1, group2, group3, group4}) {
+			group.setPrefHeight(wrapperHeight * 2/3);
+			group.setPrefWidth(WIDTH * 1/8);
+			group.setFont(Font.font(20));
+		}
 		
-		Text extra = new Text(" current stock (avaliable to use)");
-		extra.setFont(new Font(28));
-		
-		ret.getChildren().addAll(title, extra);
-		
+		ret.getChildren().addAll(group1, group2, group3, group4);
 		return ret;
 	}
-	
+	// event handler for item group buttons at top of inventory view. sets global for group filter
+	private class ItemGroupHandler implements EventHandler<ActionEvent> {
+		private ItemGroup group;
+		public ItemGroupHandler(ItemGroup group) {
+			this.group = group;
+		}
+		@Override
+		public void handle(ActionEvent event) {
+			itemGroup = this.group;   //set the current group
+			setupStockItems(true, 0); // refresh the list, put view at the top 
+		}
+		
+	}
 
 	/**
 	 * In the stock entry area (middle), formats the text fields for entering

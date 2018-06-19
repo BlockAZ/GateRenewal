@@ -55,10 +55,11 @@ public class PersonView extends BorderPane{
 	
 	String wrapPadding = "-fx-padding: 30px;";
 	
-	public PersonView(double height, double width, boolean isCustomer) {
+	public PersonView(double height, double width, boolean isCustomer, ArrayList<Person> people) {
 		this.CUSTOMER = isCustomer;
 		this.HEIGHT = height;
 		this.WIDTH 	= width;
+		this.people = people;
 		if (CUSTOMER) {
 			TOP_HEIGHT  = HEIGHT * 4/10;
 			BOT_HEIGHT  = HEIGHT * 6/10;
@@ -73,16 +74,10 @@ public class PersonView extends BorderPane{
 		this.setHeight(HEIGHT);
 		this.setWidth(WIDTH);
 		
-		if (isCustomer) {
-			people = LoadSaveData.readCustomersFromFile();
-			tableData = FXCollections.observableArrayList(people);
-			searchData = FXCollections.observableArrayList();
-		}
-		else {
-			people = LoadSaveData.readEmployeesFromFile();
-			tableData = FXCollections.observableArrayList(people);
-			searchData = FXCollections.observableArrayList();
-		}
+		tableData = FXCollections.observableArrayList(this.people);
+		searchData = FXCollections.observableArrayList();
+		
+		
 		setup();
 	}
 	
@@ -253,6 +248,7 @@ public class PersonView extends BorderPane{
 				wage.setText("");
 				
 				tableData.add(person);
+				people.add(person);
 			}
 			
 			if (submitWrap.getChildren().size() == 2)
@@ -309,7 +305,6 @@ public class PersonView extends BorderPane{
 		return view;
 	}
 	
-
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private TableView<Person> getCustomerTable() {
 		TableView<Person> view = new TableView<Person>();

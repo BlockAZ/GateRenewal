@@ -16,15 +16,16 @@ import model.StockEntry;
 
 public class FillTextFile {
 	public static void main(String args[]) {
+		
 		initPeople();
 	}
 	
 	//Testing creating, storing, and loading people objects
 	public static void initPeople() {
-		Person kyle = new Customer("Kyle Block", "(623)262-7817", "blockie@gmail.com", 
+		Person kyle = new Customer("Kyle Block", "(623) 262-7817", "blockie@gmail.com", 
 				"1539 East Prince Road", "Tucson", "AZ", "85719");
 		kyle.setNotes("he likes \ntwo \nthree lines");
-		Person chris = new Customer("Chris Block", "(623)680-9294", "cjblock@gmail.com", 
+		Person chris = new Customer("Chris Block", "(623) 680-9294", "cjblock@gmail.com", 
 				"24834 North 36th Drive", "Phoenix", "AZ", "85310");
 		chris.setNotes("this dude liesk to  iajsdfkj the fthe cat and the dog went to the park and ate"
 				+ "chicken for likettwo and a half hours hwen the guy went to do the gate and blew "
@@ -72,7 +73,7 @@ public class FillTextFile {
 			tempItems.add(new Item(in.nextLine(), false));
 		
 		for (Item item:tempItems) {
-			item.updateStock(-1 * item.getStock());
+			item.updateCount(-1 * item.getCount()); // sets 
 		}
 		
 		FileWriter out = null;

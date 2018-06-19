@@ -1,4 +1,4 @@
-package views;
+package controller;
 
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -12,6 +12,9 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
+import views.InventoryView;
+import views.JobView;
+import views.PersonView;
 
 public class MenuButtons extends VBox {
 	private BorderPane basePane;

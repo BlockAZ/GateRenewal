@@ -28,9 +28,7 @@ public abstract class Person implements Serializable{
 	}
 	
 	public String toString() {
-		return name + "\n"
-				+ date + "\n"
-				+ notes + "\n";
+		return name;
 	}
 	
 	public StringProperty nameProperty() {

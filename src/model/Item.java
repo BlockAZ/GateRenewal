@@ -2,31 +2,39 @@ package model;
 
 import javafx.scene.image.Image;
 
+
 public class Item {
+	private ItemGroup group;
 	private String name;
 	private double cost;
-	private double stock;
+	private double count;
 	private String imgString;
 	private Image pic;
 	
 	
-	public Item(String name, double cost, double stock) {
+	public Item(ItemGroup group, String name, double cost, double stock) {
+		this.group = group;
 		this.name  = name;
 		this.cost  = cost;
-		this.stock = stock;
+		this.count = stock;
 	}
 	
 	public Item(String fromFile, boolean useImage) {
 		String data[] = fromFile.split(",");
-		this.name 	= data[0];
-		this.cost 	= Double.parseDouble(data[1]);
-		this.stock 	= Double.parseDouble(data[2]);
-		if (data.length > 3) {
-			imgString = data[3];
+		this.group  = ItemGroup.valueOf(data[0].toUpperCase());
+		this.name 	= data[1];
+		this.cost 	= Double.parseDouble(data[2]);
+		this.count 	= Double.parseDouble(data[3]);
+		if (data.length > 4) {
+			imgString = data[4];
 			if (useImage)
 				pic = new Image("file:images/items/" + imgString);
 		}
 			
+	}
+	
+	public ItemGroup getGroup() {
+		return group;
 	}
 	
 	public String getName() {
@@ -38,11 +46,11 @@ public class Item {
 	public String getCostString() {
 		return String.format("%.2f", cost);
 	}
-	public double getStock() {
-		return stock;
+	public double getCount() {
+		return count;
 	}
 	public String getStockString() {
-		return Double.toString(stock);
+		return Double.toString(count);
 	}
 	public Image getImg() {
 		return pic;
@@ -51,13 +59,13 @@ public class Item {
 	public void setCost(double cost) {
 		this.cost = cost;
 	}
-	public void updateStock(double more) {
-		this.stock += more;
+	public void updateCount(double more) {
+		this.count += more;
 	}
 
 	
 	public String toString() {
-		return name + "," + cost + "," + stock + "," + imgString
+		return group.toString() + "," + name + "," + cost + "," + count + "," + imgString
 				+ "\n";
 	}
 }
