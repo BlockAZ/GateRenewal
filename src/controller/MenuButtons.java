@@ -82,7 +82,7 @@ public class MenuButtons extends VBox {
 		return stock;
 	}
 	private Button getJobButton() {
-		Button button = new Button("Jobs");
+		Button button = new Button("Jobs\n(TODO)");
 		button.setFont(Font.font(26));
 		button.setContentDisplay(ContentDisplay.TOP);
 		button.setOnMouseClicked((MouseEvent event) -> {
