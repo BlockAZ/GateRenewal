@@ -49,8 +49,8 @@ public class AppStart extends Application{
 			Platform.exit();
 		}
 		
-		APP_WIDTH = Screen.getPrimary().getBounds().getWidth() * 3/6;
-		APP_HEIGHT = Screen.getPrimary().getBounds().getHeight() * 4/6;
+		APP_WIDTH = Screen.getPrimary().getBounds().getWidth() * 4/6;
+		APP_HEIGHT = Screen.getPrimary().getBounds().getHeight() * 4.5/6;
 		MAIN_PANNEL_WIDTH = APP_WIDTH * 1/8;
 		WORKSPACE_HEIGHT = APP_HEIGHT - TITLE_BAR_HEIGHT;
 		WORKSPACE_WIDTH = APP_WIDTH - MAIN_PANNEL_WIDTH;

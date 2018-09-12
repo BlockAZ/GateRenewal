@@ -103,7 +103,7 @@ public class InventoryView extends BorderPane {
 		view.setPrefHeight(HISTORY_H);
 		view.setPrefWidth(WIDTH);
 		view.setFixedCellSize(HISTORY_H/6);
-		view.setStyle("-fx-font-size: 15;");
+		view.setStyle("-fx-font-size: 13;");
 		
 		//column names
 		TableColumn<StockEntry, String> dateCol 	= new TableColumn<StockEntry, String>("Date");

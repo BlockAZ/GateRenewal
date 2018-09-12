@@ -1,3 +1,13 @@
+/**
+ * This is the entire top bar that replaces the windows bar.
+ * Has the title, minimize, and exit.
+ * 
+ * 
+ * 
+ */
+
+
+
 package views;
 
 import controller.AppStart;

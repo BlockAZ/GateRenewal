@@ -28,6 +28,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -53,7 +54,7 @@ public class PersonView extends BorderPane{
 	private ObservableList<Person> searchData;
 	TableView<Person> personTable;
 	
-	String wrapPadding = "-fx-padding: 30px;";
+	String wrapPadding = "-fx-padding: 15px;";
 	
 	public PersonView(double height, double width, boolean isCustomer, ArrayList<Person> people) {
 		this.CUSTOMER = isCustomer;
@@ -69,7 +70,6 @@ public class PersonView extends BorderPane{
 			BOT_HEIGHT  = HEIGHT * 5/10;
 		}
 		TABLE_WIDTH = WIDTH * 3/4;
-
 		
 		this.setHeight(HEIGHT);
 		this.setWidth(WIDTH);
@@ -77,7 +77,7 @@ public class PersonView extends BorderPane{
 		tableData = FXCollections.observableArrayList(this.people);
 		searchData = FXCollections.observableArrayList();
 		
-		
+	
 		setup();
 	}
 	
@@ -121,8 +121,8 @@ public class PersonView extends BorderPane{
 	
 	private VBox getNewUserFields() {
 		VBox fields = new VBox();
-		fields.setStyle("-fx-font-size: 14");
-		fields.setSpacing(5);
+		fields.setStyle("-fx-font-size: 12");
+		fields.setSpacing(2);
 		
 		TextField search = new TextField();
 		search.setPromptText("Search");
@@ -261,7 +261,9 @@ public class PersonView extends BorderPane{
 				phone, email, street, city, zip, state, submitWrap);
 		
 		if (!CUSTOMER) {
+			// remove submit wrap
 			fields.getChildren().remove(fields.getChildren().size()-1);
+			//add in title and wage + submit wrap
 			fields.getChildren().addAll(title, wage, submitWrap);
 		}
 		return fields;
@@ -304,7 +306,6 @@ public class PersonView extends BorderPane{
 		view.setItems(tableData);
 		return view;
 	}
-	
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private TableView<Person> getCustomerTable() {
 		TableView<Person> view = new TableView<Person>();
@@ -364,13 +365,13 @@ public class PersonView extends BorderPane{
 
 	private VBox getPersonInfo(Person person) {
 		VBox info = new VBox();
-		info.setSpacing(10);
+		info.setSpacing(3);
 		info.setPrefWidth(WIDTH/2);
-		info.setStyle("-fx-font-size: 20;");
+		info.setStyle("-fx-font-size: 16;" + wrapPadding);
 		
 		// nodes and listeners to edit name
 		Label name 		= new Label(person.getName());
-		name.setFont(Font.font("", FontWeight.BOLD, 26));
+		name.setFont(Font.font("", FontWeight.BOLD, 20));
 		TextField editName = new TextField("");
 		name.setOnMouseClicked( (MouseEvent event) -> {
 			info.getChildren().remove(0);
@@ -429,7 +430,7 @@ public class PersonView extends BorderPane{
 		// nodes and listeners to edit address
 		Label address 	= new Label(person.getAddress());
 		TextArea editAddress = new TextArea("");
-		editAddress.setPrefHeight(80);
+		editAddress.setPrefHeight(100);
 		address.setOnMouseClicked( (MouseEvent event) -> {
 			info.getChildren().remove(3);
 			editAddress.setText(address.getText());
@@ -574,7 +575,6 @@ public class PersonView extends BorderPane{
 		
 	}
 
-	
 	private boolean validPhoneNumber(String number) {
 		if (number.toLowerCase().equals("na"))
 			return true;
