@@ -1,0 +1,13 @@
+board,3" Brown Board,8.0,250.0,3inch_brown_board.png
+board,5" Brown Board,3.0,45.0,3inch_brown_board.png
+board,3" Black Board,5.0,119.0,3inch_black_board.png
+board,5" Black Board,8.0,59.0,3inch_black_board.png
+board,1/4" Nails (lbs),4.0,25.0,nails.png
+board,1/2" Nails (lbs),3.0,20.0,nails.png
+other,200 Grit sandpaper (4 pack),5.0,5.0,sandpaper.png
+other,400 Grit sandpaper (4 pack),5.0,0.0,sandpaper.png
+other,Rags (50 pack),12.0,6.0,rags.png
+other,Black Rags (50 pack),12.0,60.0,black_rags.png
+welding,Filler 1,5.0,18.0,sandpaper.png
+welding,Filler 2,5.0,30.0,sandpaper.png
+welding,Filler 3,12.0,26.0,rags.png
